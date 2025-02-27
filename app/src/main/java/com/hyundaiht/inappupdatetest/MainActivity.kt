@@ -1,7 +1,10 @@
 package com.hyundaiht.inappupdatetest
 
+import android.app.ComponentCaller
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageInfo
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -9,7 +12,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -20,26 +22,27 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.InstallStateUpdatedListener
-import com.google.android.play.core.install.model.ActivityResult
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
+import com.google.android.play.core.ktx.isFlexibleUpdateAllowed
+import com.google.android.play.core.ktx.updatePriority
 import com.hyundaiht.inappupdatetest.ui.theme.InAppUpdateTestTheme
+
 
 class MainActivity : ComponentActivity() {
     private var handler: Handler? = null
     private val tag = javaClass.simpleName
     private val byteState = mutableStateOf<String>("")
+    private val appInfoState = mutableStateOf<String>("")
 
     private val callback =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
@@ -65,16 +68,24 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
+        super.onNewIntent(intent, caller)
+        Log.d(tag, "onNewIntent intent data = ${intent.data}")
+        Log.d(tag, "onNewIntent intent code = ${intent.getStringExtra("code")}")
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(tag, "onCreate intent data = ${intent.data}")
+        Log.d(tag, "onCreate intent code = ${intent.getStringExtra("code")}")
         handler = Handler(mainLooper)
-
         enableEdgeToEdge()
         setContent {
             InAppUpdateTestTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(modifier = Modifier.padding(innerPadding)) {
                         val rememberByte by remember { byteState }
+                        val rememberAppInfo by remember { appInfoState }
 
                         Text(
                             modifier = Modifier
@@ -83,10 +94,19 @@ class MainActivity : ComponentActivity() {
                                 .background(Color.Gray), text = getVersionInfo()
                         )
 
-                        Text(modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .background(Color.Yellow), text = rememberByte)
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .background(Color.Yellow), text = rememberByte
+                        )
+
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .background(Color.Cyan), text = rememberAppInfo
+                        )
 
                         Button(onClick = {
                             registerAppUpdateInfoListener()
@@ -175,12 +195,17 @@ class MainActivity : ComponentActivity() {
         // Checks that the platform will allow the specified type of update.
         appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
             val updateAvailability = appUpdateInfo.updateAvailability()
+            val updatePriority1 = appUpdateInfo.updatePriority()
+            val updatePriority2 = appUpdateInfo.updatePriority
+            val isFlexibleUpdateAllowed = appUpdateInfo.isFlexibleUpdateAllowed
+            val installStatus = appUpdateInfo.installStatus()
             val isUpdateTypeAllowed = appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
-            Toast.makeText(
-                context,
-                "appUpdateInfo updateAvailability = $updateAvailability, isUpdateTypeAllowed = $isUpdateTypeAllowed",
-                Toast.LENGTH_SHORT
-            ).show()
+            appInfoState.value = "appUpdateInfo updatePriority1 = $updatePriority1" +
+                    ", updatePriority2 = $updatePriority2" +
+                    ", updateAvailability = $updateAvailability" +
+                    ", isUpdateTypeAllowed = $isUpdateTypeAllowed " +
+                    ", isFlexibleUpdateAllowed = $isFlexibleUpdateAllowed" +
+                    ", installStatus = $installStatus"
             /* if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
                  // This example applies an immediate update. To apply a flexible update
                  // instead, pass in AppUpdateType.FLEXIBLE

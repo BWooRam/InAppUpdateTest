@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.ir.backend.js.compile
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -11,8 +13,8 @@ android {
         applicationId = "com.hyundaiht.inappupdatetest"
         minSdk = 28
         targetSdk = 34
-        versionCode = 10
-        versionName = "10.0"
+        versionCode = 15
+        versionName = "15.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -42,6 +44,10 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
+    packagingOptions {
+        exclude("META-INF/INDEX.LIST")  // 중복된 파일 제외
+        exclude("META-INF/DEPENDENCIES")  // 중복된 파일 제외
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -50,7 +56,7 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.google.api.client)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
