@@ -13,8 +13,8 @@ android {
         applicationId = "com.hyundaiht.inappupdatetest"
         minSdk = 28
         targetSdk = 34
-        versionCode = 15
-        versionName = "15.0"
+        versionCode = 18
+        versionName = "18.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

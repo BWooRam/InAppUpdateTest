@@ -199,13 +199,17 @@ class MainActivity : ComponentActivity() {
             val updatePriority2 = appUpdateInfo.updatePriority
             val isFlexibleUpdateAllowed = appUpdateInfo.isFlexibleUpdateAllowed
             val installStatus = appUpdateInfo.installStatus()
-            val isUpdateTypeAllowed = appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+            val clientVersionStalenessDays = appUpdateInfo.clientVersionStalenessDays()
+            val isUpdateTypeAllowed1 = appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+            val isUpdateTypeAllowed2 = appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
             appInfoState.value = "appUpdateInfo updatePriority1 = $updatePriority1" +
                     ", updatePriority2 = $updatePriority2" +
                     ", updateAvailability = $updateAvailability" +
-                    ", isUpdateTypeAllowed = $isUpdateTypeAllowed " +
+                    ", isUpdateTypeAllowed1 = $isUpdateTypeAllowed1 " +
+                    ", isUpdateTypeAllowed2 = $isUpdateTypeAllowed2 " +
                     ", isFlexibleUpdateAllowed = $isFlexibleUpdateAllowed" +
-                    ", installStatus = $installStatus"
+                    ", installStatus = $installStatus" +
+                    ", clientVersionStalenessDays = $clientVersionStalenessDays"
             /* if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
                  // This example applies an immediate update. To apply a flexible update
                  // instead, pass in AppUpdateType.FLEXIBLE
@@ -216,6 +220,8 @@ class MainActivity : ComponentActivity() {
              } else {
                  Toast.makeText(context, "checkAppUpdateInfo else", Toast.LENGTH_SHORT).show()
              }*/
+        }.addOnFailureListener {
+            appInfoState.value = "checkAppUpdateInfo error = $it"
         }
     }
 
@@ -246,12 +252,12 @@ class MainActivity : ComponentActivity() {
 
         appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
             if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
-                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
             ) {
                 appUpdateManager.startUpdateFlowForResult(
                     appUpdateInfo,
                     callback,
-                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
+                    AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build()
                 )
             } else {
                 Toast.makeText(context, "executeInAppUpdate failure", Toast.LENGTH_SHORT).show()

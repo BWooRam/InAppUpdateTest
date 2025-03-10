@@ -101,11 +101,14 @@ class OAuthActivity : ComponentActivity() {
         var isOAuthComplete by remember { mutableStateOf(false) }
 
         if (isOAuthComplete) {
-            OAuthWebView(url = "https://accounts.google.com/o/oauth2/token", isPost = true, onUrlChange = { newUrl ->
-                if (newUrl.startsWith("com.hyundaiht.inappupdatetest:/oauthredirect")) {
-                    Log.d(tag, "onUrlChange start")
-                }
-            })
+            OAuthWebView(
+                url = "https://accounts.google.com/o/oauth2/token",
+                isPost = true,
+                onUrlChange = { newUrl ->
+                    if (newUrl.startsWith("com.hyundaiht.inappupdatetest:/oauthredirect")) {
+                        Log.d(tag, "onUrlChange start")
+                    }
+                })
         } else {
             OAuthWebView(url = currentUrl, isPost = false, onUrlChange = { newUrl ->
                 if (newUrl.startsWith("com.hyundaiht.inappupdatetest:/oauthredirect")) {
@@ -129,8 +132,8 @@ class OAuthActivity : ComponentActivity() {
                     settings.domStorageEnabled = true
                     settings.useWideViewPort = true
                     settings.loadWithOverviewMode = true
-                    settings.userAgentString =
-                        "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Mobile Safari/537.36"
+                    settings.userAgentString = "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Mobile Safari/537.36"
+
                     webViewClient = object : WebViewClient() {
                         override fun shouldOverrideUrlLoading(
                             view: WebView?,
@@ -147,7 +150,7 @@ class OAuthActivity : ComponentActivity() {
                     if (isPost) {
                         val postData = "grant_type=authorization_code&" +
                                 "code=$code&" +
-                                "client_id=$CLIENT_ID&"+
+                                "client_id=$CLIENT_ID&" +
                                 "redirect_uri=$REDIRECT_URI"
                         postUrl(url, postData.toByteArray())
                     } else
