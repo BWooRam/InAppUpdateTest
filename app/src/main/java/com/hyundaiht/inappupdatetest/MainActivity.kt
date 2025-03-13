@@ -111,8 +111,14 @@ class MainActivity : ComponentActivity() {
                         Button(onClick = {
                             registerAppUpdateInfoListener()
                         }) {
-                            Text("registerAppUpdateInfoListener 실행")
+                            Text("유연한 앱 설치 - registerAppUpdateInfoListener 실행")
                         }
+                        Button(onClick = {
+                            registerAppUpdateInfoListener()
+                        }) {
+                            Text("유연한 앱 설치 - completeUpdate 실행")
+                        }
+
 
                         Button(onClick = {
                             checkAppUpdateInfo()
@@ -153,10 +159,16 @@ class MainActivity : ComponentActivity() {
                     == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS
                 ) {
                     // If an in-app update is already running, resume the update.
+                    Toast.makeText(
+                        this@MainActivity,
+                        "앱에 설치 대기 중인 업데이트가 있습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
                     appUpdateManager.startUpdateFlowForResult(
                         appUpdateInfo,
                         retryCallback,
-                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
+                        AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build()
                     )
                 }
             }
@@ -173,12 +185,37 @@ class MainActivity : ComponentActivity() {
         val appUpdateManager = AppUpdateManagerFactory.create(context)
 
         val listener = InstallStateUpdatedListener { state ->
-            if (state.installStatus() == InstallStatus.DOWNLOADING) {
-                val bytesDownloaded = state.bytesDownloaded()
-                val totalBytesToDownload = state.totalBytesToDownload()
-                byteState.value = "$bytesDownloaded/$totalBytesToDownload"
-            } else {
-                byteState.value = "InstallStateUpdatedListener Not DOWNLOADING"
+            when (state.installStatus()) {
+                InstallStatus.DOWNLOADING -> {
+                    val bytesDownloaded = state.bytesDownloaded()
+                    val totalBytesToDownload = state.totalBytesToDownload()
+                    byteState.value = "DOWNLOADING $bytesDownloaded/$totalBytesToDownload"
+                }
+
+                InstallStatus.DOWNLOADED -> {
+                    byteState.value = "DOWNLOADED"
+                    appUpdateManager.completeUpdate()
+                }
+
+                InstallStatus.INSTALLING -> {
+                    byteState.value = "INSTALLING"
+                }
+
+                InstallStatus.INSTALLED -> {
+                    byteState.value = "INSTALLED"
+                }
+
+                InstallStatus.FAILED -> {
+                    byteState.value = "FAILED"
+                }
+
+                InstallStatus.CANCELED -> {
+                    byteState.value = "CANCELED"
+                }
+
+                else -> {
+                    byteState.value = "else"
+                }
             }
         }
 
